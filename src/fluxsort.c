@@ -160,15 +160,17 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 
 	while (ptx + 8 < pte)
 	{
-		val = cmp(ptx + 0, &piv) <= 0; *pta = ptx[0]; pta += val; *pts = ptx[0]; pts += !val;
-		val = cmp(ptx + 1, &piv) <= 0; *pta = ptx[1]; pta += val; *pts = ptx[1]; pts += !val;
-		val = cmp(ptx + 2, &piv) <= 0; *pta = ptx[2]; pta += val; *pts = ptx[2]; pts += !val;
-		val = cmp(ptx + 3, &piv) <= 0; *pta = ptx[3]; pta += val; *pts = ptx[3]; pts += !val;
-		val = cmp(ptx + 4, &piv) <= 0; *pta = ptx[4]; pta += val; *pts = ptx[4]; pts += !val;
-		val = cmp(ptx + 5, &piv) <= 0; *pta = ptx[5]; pta += val; *pts = ptx[5]; pts += !val;
-		val = cmp(ptx + 6, &piv) <= 0; *pta = ptx[6]; pta += val; *pts = ptx[6]; pts += !val;
-		val = cmp(ptx + 7, &piv) <= 0; *pta = ptx[7]; pta += val; *pts = ptx[7]; pts += !val;
+		size_t n=0;
+		val = cmp(ptx + 0, &piv) <= 0; pta[n] = pts[0-n] = ptx[0]; n += val;
+		val = cmp(ptx + 1, &piv) <= 0; pta[n] = pts[1-n] = ptx[1]; n += val;
+		val = cmp(ptx + 2, &piv) <= 0; pta[n] = pts[2-n] = ptx[2]; n += val;
+		val = cmp(ptx + 3, &piv) <= 0; pta[n] = pts[3-n] = ptx[3]; n += val;
+		val = cmp(ptx + 4, &piv) <= 0; pta[n] = pts[4-n] = ptx[4]; n += val;
+		val = cmp(ptx + 5, &piv) <= 0; pta[n] = pts[5-n] = ptx[5]; n += val;
+		val = cmp(ptx + 6, &piv) <= 0; pta[n] = pts[6-n] = ptx[6]; n += val;
+		val = cmp(ptx + 7, &piv) <= 0; pta[n] = pts[7-n] = ptx[7]; n += val;
 
+		pta += n; pts += 8-n;
 		ptx += 8;
 	}
 
