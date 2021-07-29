@@ -158,7 +158,7 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 	pta = array;
 	pts = swap;
 
-	while (ptx + 8 < pte)
+	while (ptx + 8 <= pte)
 	{
 		size_t n=0;
 		val = cmp(ptx + 0, &piv) <= 0; pta[n] = pts[0-n] = ptx[0]; n += val;
