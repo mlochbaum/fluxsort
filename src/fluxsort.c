@@ -73,7 +73,7 @@ size_t FUNC(flux_analyze)(VAR *array, size_t nmemb, CMPFUNC *cmp)
 	return 0;
 }
 
-size_t FUNC(median_of_five)(VAR *array, size_t v0, size_t v1, size_t v2, size_t v3, size_t v4, CMPFUNC *cmp)
+static size_t FUNC(median_of_five)(VAR *array, size_t v0, size_t v1, size_t v2, size_t v3, size_t v4, CMPFUNC *cmp)
 {
 	unsigned char t[4], val;
 
@@ -100,7 +100,7 @@ size_t FUNC(median_of_five)(VAR *array, size_t v0, size_t v1, size_t v2, size_t 
 	return t[3] == 2 ? v3 : v4;
 }
 
-size_t FUNC(median_of_three)(VAR *array, size_t v0, size_t v1, size_t v2, CMPFUNC *cmp)
+static size_t FUNC(median_of_three)(VAR *array, size_t v0, size_t v1, size_t v2, CMPFUNC *cmp)
 {
 	unsigned char t[2], val;
 
