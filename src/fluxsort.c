@@ -220,6 +220,7 @@ void FUNC(flux_loop)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmemb, CM
 	size_t a_size, s_size;
 	VAR *pta, *pts, *pte, piv;
 
+recurse:
 	if (nmemb > 1024)
 	{
 		piv = FUNC(median_of_fifteen)(ptx, nmemb, cmp);
@@ -253,7 +254,9 @@ void FUNC(flux_loop)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmemb, CM
 		}
 		else
 		{
-			FUNC(flux_loop)(array, swap, pts, end, s_size, cmp);
+			ptx = pts;
+			nmemb = s_size;
+			goto recurse;
 		}
 	}
 	else
@@ -277,7 +280,8 @@ void FUNC(flux_loop)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmemb, CM
 		}
 		else
 		{
-			FUNC(flux_loop)(array, swap, array, end, a_size, cmp);
+			nmemb = a_size;
+			goto recurse;
 		}
 	}
 }
