@@ -260,7 +260,6 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmem
 	}
 	else
 	{
-		swap[s_size] = array[nmemb];
 		FUNC(flux_partition)(pta, swap, swap, end, s_size, cmp);
 	}
 
