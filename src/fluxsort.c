@@ -153,10 +153,10 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 		piv = FUNC(median_of_nine)(ptx, nmemb, cmp);
 	}
 
-	pte = ptx + nmemb;
-
 	pta = array;
 	pts = swap;
+	pte = ptx + nmemb;
+
 
 	if (cmp(pte, &piv) <= 0)
 	{
@@ -165,26 +165,28 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 		equal:
 		while (ptx + 8 <= pte)
 		{
-			size_t n=0;
-			val = cmp(&piv, ptx + 0) > 0; pta[n] = pts[0-n] = ptx[0]; n += val;
-			val = cmp(&piv, ptx + 1) > 0; pta[n] = pts[1-n] = ptx[1]; n += val;
-			val = cmp(&piv, ptx + 2) > 0; pta[n] = pts[2-n] = ptx[2]; n += val;
-			val = cmp(&piv, ptx + 3) > 0; pta[n] = pts[3-n] = ptx[3]; n += val;
-			val = cmp(&piv, ptx + 4) > 0; pta[n] = pts[4-n] = ptx[4]; n += val;
-			val = cmp(&piv, ptx + 5) > 0; pta[n] = pts[5-n] = ptx[5]; n += val;
-			val = cmp(&piv, ptx + 6) > 0; pta[n] = pts[6-n] = ptx[6]; n += val;
-			val = cmp(&piv, ptx + 7) > 0; pta[n] = pts[7-n] = ptx[7]; n += val;
+			size_t n = 0;
 
-			pta += n; pts += 8-n;
+			val = cmp(&piv, ptx + 0) > 0; pta[n] = pts[0 - n] = ptx[0]; n += val;
+			val = cmp(&piv, ptx + 1) > 0; pta[n] = pts[1 - n] = ptx[1]; n += val;
+			val = cmp(&piv, ptx + 2) > 0; pta[n] = pts[2 - n] = ptx[2]; n += val;
+			val = cmp(&piv, ptx + 3) > 0; pta[n] = pts[3 - n] = ptx[3]; n += val;
+			val = cmp(&piv, ptx + 4) > 0; pta[n] = pts[4 - n] = ptx[4]; n += val;
+			val = cmp(&piv, ptx + 5) > 0; pta[n] = pts[5 - n] = ptx[5]; n += val;
+			val = cmp(&piv, ptx + 6) > 0; pta[n] = pts[6 - n] = ptx[6]; n += val;
+			val = cmp(&piv, ptx + 7) > 0; pta[n] = pts[7 - n] = ptx[7]; n += val;
+
+			pta += n;
+			pts += 8 - n;
 			ptx += 8;
 		}
 
 		while (ptx < pte)
 		{
-			val = cmp(&piv, ptx) > 0;
-			*pta = *ptx; pta += val;
-			*pts = *ptx; pts += !val;
+			val = cmp(&piv, ptx) > 0; pta[0] = pts[0] = ptx[0];
 
+			pta += val;
+			pts += !val;
 			ptx++;
 		}
 
@@ -196,26 +198,28 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 	{
 		while (ptx + 8 <= pte)
 		{
-			size_t n=0;
-			val = cmp(ptx + 0, &piv) <= 0; pta[n] = pts[0-n] = ptx[0]; n += val;
-			val = cmp(ptx + 1, &piv) <= 0; pta[n] = pts[1-n] = ptx[1]; n += val;
-			val = cmp(ptx + 2, &piv) <= 0; pta[n] = pts[2-n] = ptx[2]; n += val;
-			val = cmp(ptx + 3, &piv) <= 0; pta[n] = pts[3-n] = ptx[3]; n += val;
-			val = cmp(ptx + 4, &piv) <= 0; pta[n] = pts[4-n] = ptx[4]; n += val;
-			val = cmp(ptx + 5, &piv) <= 0; pta[n] = pts[5-n] = ptx[5]; n += val;
-			val = cmp(ptx + 6, &piv) <= 0; pta[n] = pts[6-n] = ptx[6]; n += val;
-			val = cmp(ptx + 7, &piv) <= 0; pta[n] = pts[7-n] = ptx[7]; n += val;
+			size_t n = 0;
 
-			pta += n; pts += 8-n;
+			val = cmp(ptx + 0, &piv) <= 0; pta[n] = pts[0 - n] = ptx[0]; n += val;
+			val = cmp(ptx + 1, &piv) <= 0; pta[n] = pts[1 - n] = ptx[1]; n += val;
+			val = cmp(ptx + 2, &piv) <= 0; pta[n] = pts[2 - n] = ptx[2]; n += val;
+			val = cmp(ptx + 3, &piv) <= 0; pta[n] = pts[3 - n] = ptx[3]; n += val;
+			val = cmp(ptx + 4, &piv) <= 0; pta[n] = pts[4 - n] = ptx[4]; n += val;
+			val = cmp(ptx + 5, &piv) <= 0; pta[n] = pts[5 - n] = ptx[5]; n += val;
+			val = cmp(ptx + 6, &piv) <= 0; pta[n] = pts[6 - n] = ptx[6]; n += val;
+			val = cmp(ptx + 7, &piv) <= 0; pta[n] = pts[7 - n] = ptx[7]; n += val;
+
+			pta += n;
+			pts += 8 - n;
 			ptx += 8;
 		}
 
 		while (ptx < pte)
 		{
-			val = cmp(ptx, &piv) <= 0;
-			*pta = *ptx; pta += val;
-			*pts = *ptx; pts += !val;
+			val = cmp(ptx, &piv) <= 0; pta[0] = pts[0] = ptx[0];
 
+			pta += val;
+			pts += !val;
 			ptx++;
 		}
 
