@@ -138,6 +138,59 @@ VAR FUNC(median_of_nine)(VAR *array, size_t nmemb, CMPFUNC *cmp)
 	return array[FUNC(median_of_three)(array, v1, v0, v2, cmp)];
 }
 
+void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC *cmp);
+
+static void FUNC(flux_reverse_partition)(VAR *array, VAR *swap, VAR *ptx, VAR piv, size_t nmemb, CMPFUNC *cmp)
+{
+	unsigned char val;
+	size_t a_size, s_size;
+	VAR *pta, *pts, *pte;
+
+	pta = array;
+	pts = swap;
+	pte = ptx + nmemb;
+
+	while (ptx + 8 <= pte)
+	{
+		size_t n = 0;
+
+		val = cmp(&piv, ptx + 0) > 0; pta[n] = pts[0 - n] = ptx[0]; n += val;
+		val = cmp(&piv, ptx + 1) > 0; pta[n] = pts[1 - n] = ptx[1]; n += val;
+		val = cmp(&piv, ptx + 2) > 0; pta[n] = pts[2 - n] = ptx[2]; n += val;
+		val = cmp(&piv, ptx + 3) > 0; pta[n] = pts[3 - n] = ptx[3]; n += val;
+		val = cmp(&piv, ptx + 4) > 0; pta[n] = pts[4 - n] = ptx[4]; n += val;
+		val = cmp(&piv, ptx + 5) > 0; pta[n] = pts[5 - n] = ptx[5]; n += val;
+		val = cmp(&piv, ptx + 6) > 0; pta[n] = pts[6 - n] = ptx[6]; n += val;
+		val = cmp(&piv, ptx + 7) > 0; pta[n] = pts[7 - n] = ptx[7]; n += val;
+
+		pta += n;
+		pts += 8 - n;
+		ptx += 8;
+	}
+
+	while (ptx < pte)
+	{
+		val = cmp(&piv, ptx) > 0; pta[0] = pts[0] = ptx[0];
+
+		pta += val;
+		pts += !val;
+		ptx++;
+	}
+	s_size = pts - swap;
+	a_size = nmemb - s_size;
+
+	memcpy(pta, swap, s_size * sizeof(VAR));
+
+	if (a_size <= FLUX_OUT)
+	{
+		FUNC(quadsort_swap)(array, swap, a_size, cmp);
+	}
+	else
+	{
+		FUNC(flux_partition)(array, swap, array, a_size, cmp);
+	}
+}
+
 void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC *cmp)
 {
 	unsigned char val;
@@ -153,95 +206,60 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 		piv = FUNC(median_of_nine)(ptx, nmemb, cmp);
 	}
 
-	pta = array;
-	pts = swap;
-	pte = ptx + nmemb;
 
+	pte = ptx + nmemb;
 
 	if (cmp(pte, &piv) <= 0)
 	{
-		// Right partition would be (or was) empty.
-		// Place pivots on the right, and no need to sort it.
-		equal:
-		while (ptx + 8 <= pte)
-		{
-			size_t n = 0;
+		return FUNC(flux_reverse_partition)(array, swap, ptx, piv, nmemb, cmp);
+	}
 
-			val = cmp(&piv, ptx + 0) > 0; pta[n] = pts[0 - n] = ptx[0]; n += val;
-			val = cmp(&piv, ptx + 1) > 0; pta[n] = pts[1 - n] = ptx[1]; n += val;
-			val = cmp(&piv, ptx + 2) > 0; pta[n] = pts[2 - n] = ptx[2]; n += val;
-			val = cmp(&piv, ptx + 3) > 0; pta[n] = pts[3 - n] = ptx[3]; n += val;
-			val = cmp(&piv, ptx + 4) > 0; pta[n] = pts[4 - n] = ptx[4]; n += val;
-			val = cmp(&piv, ptx + 5) > 0; pta[n] = pts[5 - n] = ptx[5]; n += val;
-			val = cmp(&piv, ptx + 6) > 0; pta[n] = pts[6 - n] = ptx[6]; n += val;
-			val = cmp(&piv, ptx + 7) > 0; pta[n] = pts[7 - n] = ptx[7]; n += val;
+	pta = array;
+	pts = swap;
 
-			pta += n;
-			pts += 8 - n;
-			ptx += 8;
-		}
+	while (ptx + 8 <= pte)
+	{
+		size_t n = 0;
 
-		while (ptx < pte)
-		{
-			val = cmp(&piv, ptx) > 0; pta[0] = pts[0] = ptx[0];
+		val = cmp(ptx + 0, &piv) <= 0; pta[n] = pts[0 - n] = ptx[0]; n += val;
+		val = cmp(ptx + 1, &piv) <= 0; pta[n] = pts[1 - n] = ptx[1]; n += val;
+		val = cmp(ptx + 2, &piv) <= 0; pta[n] = pts[2 - n] = ptx[2]; n += val;
+		val = cmp(ptx + 3, &piv) <= 0; pta[n] = pts[3 - n] = ptx[3]; n += val;
+		val = cmp(ptx + 4, &piv) <= 0; pta[n] = pts[4 - n] = ptx[4]; n += val;
+		val = cmp(ptx + 5, &piv) <= 0; pta[n] = pts[5 - n] = ptx[5]; n += val;
+		val = cmp(ptx + 6, &piv) <= 0; pta[n] = pts[6 - n] = ptx[6]; n += val;
+		val = cmp(ptx + 7, &piv) <= 0; pta[n] = pts[7 - n] = ptx[7]; n += val;
 
-			pta += val;
-			pts += !val;
-			ptx++;
-		}
+		pta += n;
+		pts += 8 - n;
+		ptx += 8;
+	}
 
-		s_size = pts - swap;
-		a_size = nmemb - s_size;
+	while (ptx < pte)
+	{
+		val = cmp(ptx, &piv) <= 0; pta[0] = pts[0] = ptx[0];
+
+		pta += val;
+		pts += !val;
+		ptx++;
+	}
+
+	s_size = pts - swap;
+	if (s_size == 0)
+	{
+		return FUNC(flux_reverse_partition)(array, swap, array, piv, nmemb, cmp);
+	}
+
+	a_size = nmemb - s_size;
+	if (a_size <= s_size / 16 || s_size <= FLUX_OUT)
+	{
 		memcpy(pta, swap, s_size * sizeof(VAR));
+		FUNC(quadsort_swap)(pta, swap, s_size, cmp);
 	}
 	else
 	{
-		while (ptx + 8 <= pte)
-		{
-			size_t n = 0;
-
-			val = cmp(ptx + 0, &piv) <= 0; pta[n] = pts[0 - n] = ptx[0]; n += val;
-			val = cmp(ptx + 1, &piv) <= 0; pta[n] = pts[1 - n] = ptx[1]; n += val;
-			val = cmp(ptx + 2, &piv) <= 0; pta[n] = pts[2 - n] = ptx[2]; n += val;
-			val = cmp(ptx + 3, &piv) <= 0; pta[n] = pts[3 - n] = ptx[3]; n += val;
-			val = cmp(ptx + 4, &piv) <= 0; pta[n] = pts[4 - n] = ptx[4]; n += val;
-			val = cmp(ptx + 5, &piv) <= 0; pta[n] = pts[5 - n] = ptx[5]; n += val;
-			val = cmp(ptx + 6, &piv) <= 0; pta[n] = pts[6 - n] = ptx[6]; n += val;
-			val = cmp(ptx + 7, &piv) <= 0; pta[n] = pts[7 - n] = ptx[7]; n += val;
-
-			pta += n;
-			pts += 8 - n;
-			ptx += 8;
-		}
-
-		while (ptx < pte)
-		{
-			val = cmp(ptx, &piv) <= 0; pta[0] = pts[0] = ptx[0];
-
-			pta += val;
-			pts += !val;
-			ptx++;
-		}
-
-		s_size = pts - swap;
-		if (s_size == 0)
-		{
-			ptx = pta = array;
-			pte = ptx + nmemb;
-			goto equal;
-		}
-
-		a_size = nmemb - s_size;
-		if (a_size <= s_size / 16 || s_size <= FLUX_OUT)
-		{
-			memcpy(pta, swap, s_size * sizeof(VAR));
-			FUNC(quadsort_swap)(pta, swap, s_size, cmp);
-		}
-		else
-		{
-			swap[s_size] = array[nmemb];
-			FUNC(flux_partition)(pta, swap, swap, s_size, cmp);
-		}
+		swap[s_size] = array[nmemb];
+		FUNC(flux_partition)(pta, swap, swap, s_size, cmp);
 	}
 
 	if (s_size <= a_size / 16 || a_size <= FLUX_OUT)
