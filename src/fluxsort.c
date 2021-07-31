@@ -138,9 +138,9 @@ VAR FUNC(median_of_nine)(VAR *array, size_t nmemb, CMPFUNC *cmp)
 	return array[FUNC(median_of_three)(array, v1, v0, v2, cmp)];
 }
 
-void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC *cmp);
+void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmemb, CMPFUNC *cmp);
 
-static void FUNC(flux_reverse_partition)(VAR *array, VAR *swap, VAR *ptx, VAR piv, size_t nmemb, CMPFUNC *cmp)
+static void FUNC(flux_reverse_partition)(VAR *array, VAR *swap, VAR *ptx, VAR *end, VAR piv, size_t nmemb, CMPFUNC *cmp)
 {
 	unsigned char val;
 	size_t s_size;
@@ -189,11 +189,11 @@ static void FUNC(flux_reverse_partition)(VAR *array, VAR *swap, VAR *ptx, VAR pi
 	}
 	else
 	{
-		FUNC(flux_partition)(array, swap, pts, s_size, cmp);
+		FUNC(flux_partition)(array, swap, pts, end, s_size, cmp);
 	}
 }
 
-void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC *cmp)
+void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmemb, CMPFUNC *cmp)
 {
 	unsigned char val;
 	size_t a_size, s_size;
@@ -211,9 +211,9 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 
 	pte = ptx + nmemb;
 
-	if (cmp(pte, &piv) <= 0)
+	if (pte < end && cmp(pte, &piv) <= 0)
 	{
-		return FUNC(flux_reverse_partition)(array, swap, ptx, piv, nmemb, cmp);
+		return FUNC(flux_reverse_partition)(array, swap, ptx, end, piv, nmemb, cmp);
 	}
 
 	pta = array;
@@ -249,7 +249,7 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 	s_size = pts - swap;
 	if (s_size == 0)
 	{
-		return FUNC(flux_reverse_partition)(array, swap, array, piv, nmemb, cmp);
+		return FUNC(flux_reverse_partition)(array, swap, array, end, piv, nmemb, cmp);
 	}
 
 	a_size = nmemb - s_size;
@@ -261,7 +261,7 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 	else
 	{
 		swap[s_size] = array[nmemb];
-		FUNC(flux_partition)(pta, swap, swap, s_size, cmp);
+		FUNC(flux_partition)(pta, swap, swap, end, s_size, cmp);
 	}
 
 	if (s_size <= a_size / 16 || a_size <= FLUX_OUT)
@@ -270,28 +270,8 @@ void FUNC(flux_partition)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, CMPFUNC
 	}
 	else
 	{
-		FUNC(flux_partition)(array, swap, array, a_size, cmp);
+		FUNC(flux_partition)(array, swap, array, end, a_size, cmp);
 	}
-}
-
-// Swap the last instance of the maximum value to the end.
-void FUNC(flux_max)(VAR *array, size_t nmemb, CMPFUNC *cmp)
-{
-	size_t block = 1024;
-	VAR max = array[0];
-	size_t jmax = 0, j = 0, i = 0;
-
-	do
-	{
-		j += block; if (j > nmemb) j = nmemb;
-		VAR m = array[i];
-		for ( ; i<j; i++) if (cmp(array+i,&m)>0) m=array[i];
-		if (cmp(&max, &m) <= 0) { max=m; jmax=j; }
-	}
-	while (i < nmemb);
-
-	for (i = jmax; i--; ) if (cmp(&max, array+i)<=0) break;
-	max = array[i]; array[i] = array[nmemb-1]; array[nmemb-1] = max;
 }
 
 void FUNC(fluxsort)(void *array, size_t nmemb, CMPFUNC *cmp)
@@ -302,11 +282,9 @@ void FUNC(fluxsort)(void *array, size_t nmemb, CMPFUNC *cmp)
 	}
 	else if (FUNC(flux_analyze)(array, nmemb, cmp) == 0)
 	{
-		FUNC(flux_max)(array, nmemb, cmp); nmemb--;
-
 		VAR *swap = malloc(nmemb * sizeof(VAR));
 
-		FUNC(flux_partition)(array, swap, array, nmemb, cmp);
+		FUNC(flux_partition)(array, swap, array, array + nmemb, nmemb, cmp);
 
 		free(swap);
 	}
