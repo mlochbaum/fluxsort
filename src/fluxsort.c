@@ -265,22 +265,22 @@ recurse:
 		piv = tmp[cnt / 2];
 	}
 
-	pte = ptx + nmemb;
-
-	if (hasbound && cmp(pte, &piv) <= 0)
+	if (hasbound && cmp(array + nmemb, &piv) <= 0)
 	{
 		s_size = 0;
 	}
 	else
 	{
-		s_size = FUNC(flux_partition)(ptx, pte, array, swap, piv, cmp);
+		s_size = FUNC(flux_partition)(ptx, ptx + nmemb, array, swap, piv, cmp);
 		ptx = array;
 	}
 
 	if (s_size == 0)
 	{
-		s_size = FUNC(flux_reverse_partition)(array, swap, ptx, piv, nmemb, cmp);
-		pts = swap + nmemb - s_size;
+		VAR *pts = ptx != array ? ptx : swap;
+
+		s_size = FUNC(flux_reverse_partition)(array, pts, ptx, piv, nmemb, cmp);
+		pts += nmemb - s_size;
 
 		if (s_size <= FLUX_OUT)
 		{
@@ -306,7 +306,6 @@ recurse:
 		}
 		else
 		{
-			if (hasbound) swap[s_size] = array[nmemb];
 			FUNC(flux_loop)(pta, swap, swap, s_size, hasbound, cmp);
 		}
 		hasbound = 1;
