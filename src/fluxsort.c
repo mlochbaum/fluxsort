@@ -215,19 +215,43 @@ static size_t FUNC(flux_reverse_partition)(VAR *array, VAR *swap, VAR *ptx, VAR 
 	return pta + 1 - array;
 }
 
+void FUNC(fluxsort)(void *array, size_t nmemb, CMPFUNC *cmp);
+
 void FUNC(flux_loop)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmemb, CMPFUNC *cmp)
 {
 	size_t a_size, s_size;
 	VAR *pta, *pts, *pte, piv;
 
 recurse:
-	if (nmemb > 1024)
+	if (nmemb <= 1024)
+	{
+		piv = FUNC(median_of_nine)(ptx, nmemb, cmp);
+	}
+	else if (nmemb <= 16384)
 	{
 		piv = FUNC(median_of_fifteen)(ptx, nmemb, cmp);
 	}
 	else
 	{
-		piv = FUNC(median_of_nine)(ptx, nmemb, cmp);
+		size_t log2, nt, div, cnt, i;
+		VAR *tmp = ptx==array ? swap : array;
+
+		log2 = 14;
+		nt = nmemb >> log2;
+		while (nt)
+		{
+			log2++;
+			nt >>= 1;
+		}
+		div = (size_t)sqrt((double)nmemb * (2 * (2 + log2)));
+
+		for (cnt = i = 0 ; i < nmemb ; i += div)
+		{
+			tmp[cnt++] = ptx[i];
+		}
+		FUNC(fluxsort)(tmp, cnt, cmp);
+
+		piv = tmp[cnt / 2];
 	}
 
 	pte = ptx + nmemb;
