@@ -234,6 +234,7 @@ recurse:
 	else
 	{
 		size_t log2, nt, div, cnt, i;
+		unsigned seed, mask;
 		VAR *tmp = ptx==array ? swap : array;
 
 		log2 = 14;
@@ -245,9 +246,16 @@ recurse:
 		}
 		div = (size_t)sqrt((double)nmemb * (2 * (2 + log2)));
 
-		for (cnt = i = 0 ; i < nmemb ; i += div)
+		seed = nmemb;
+		mask = (1 << (log2 / 2)) - 1;
+		for (cnt = i = 0 ; i < nmemb - mask ; i += 3*div)
 		{
-			tmp[cnt++] = ptx[i];
+			seed ^= seed << 13;
+			tmp[cnt++] = ptx[i + (seed & mask)];
+			seed ^= seed >> 17;
+			tmp[cnt++] = ptx[i + (seed & mask)];
+			seed ^= seed << 5;
+			tmp[cnt++] = ptx[i + (seed & mask)];
 		}
 		FUNC(fluxsort)(tmp, cnt, cmp);
 
