@@ -217,7 +217,7 @@ static size_t FUNC(flux_reverse_partition)(VAR *array, VAR *swap, VAR *ptx, VAR 
 
 void FUNC(fluxsort)(void *array, size_t nmemb, CMPFUNC *cmp);
 
-void FUNC(flux_loop)(VAR *array, VAR *swap, VAR *ptx, VAR *end, size_t nmemb, CMPFUNC *cmp)
+void FUNC(flux_loop)(VAR *array, VAR *swap, VAR *ptx, size_t nmemb, bool hasbound, CMPFUNC *cmp)
 {
 	size_t a_size, s_size;
 	VAR *pta, *pts, *pte, piv;
@@ -267,7 +267,7 @@ recurse:
 
 	pte = ptx + nmemb;
 
-	if (pte < end && cmp(pte, &piv) <= 0)
+	if (hasbound && cmp(pte, &piv) <= 0)
 	{
 		s_size = 0;
 	}
@@ -306,8 +306,10 @@ recurse:
 		}
 		else
 		{
-			FUNC(flux_loop)(pta, swap, swap, end, s_size, cmp);
+			if (hasbound) swap[s_size] = array[nmemb];
+			FUNC(flux_loop)(pta, swap, swap, s_size, hasbound, cmp);
 		}
+		hasbound = 1;
 
 		if (s_size <= a_size / 16 || a_size <= FLUX_OUT)
 		{
@@ -331,7 +333,7 @@ void FUNC(fluxsort)(void *array, size_t nmemb, CMPFUNC *cmp)
 	{
 		VAR *swap = malloc(nmemb * sizeof(VAR));
 
-		FUNC(flux_loop)(array, swap, array, array + nmemb, nmemb, cmp);
+		FUNC(flux_loop)(array, swap, array, nmemb, 0, cmp);
 
 		free(swap);
 	}
