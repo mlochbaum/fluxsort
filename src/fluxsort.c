@@ -247,15 +247,18 @@ recurse:
 		div = (size_t)sqrt((double)nmemb * (2 * (2 + log2)));
 
 		seed = nmemb;
-		mask = (1 << (log2 / 2)) - 1;
-		for (cnt = i = 0 ; i < nmemb - mask ; i += 3*div)
+		mask = (1 << (2 + log2 / 2)) - 1;
+		for (cnt = i = 0 ; i < nmemb - (mask + 2 * div); )
 		{
 			seed ^= seed << 13;
 			tmp[cnt++] = ptx[i + (seed & mask)];
+			i += div;
 			seed ^= seed >> 17;
 			tmp[cnt++] = ptx[i + (seed & mask)];
+			i += div;
 			seed ^= seed << 5;
 			tmp[cnt++] = ptx[i + (seed & mask)];
+			i += div;
 		}
 		FUNC(fluxsort)(tmp, cnt, cmp);
 
