@@ -114,15 +114,35 @@ static size_t FUNC(median_of_three)(VAR *array, size_t v0, size_t v1, size_t v2,
 	return t[1] == 1 ? v1 : v2;
 }
 
+static size_t FUNC(median_of_three_rand)(VAR *array, size_t start, size_t inc, unsigned *seedpnt, unsigned mask, CMPFUNC *cmp)
+{
+	size_t v0, v1, v2;
+	unsigned seed = *seedpnt;
+
+	v0 = start + (seed & mask);
+	seed ^= seed << 7;
+	start += inc;
+	v1 = start + (seed & mask);
+	seed ^= seed >> 9;
+	start += inc;
+	v2 = start + (seed & mask);
+	seed ^= seed << 8;
+
+	*seedpnt = seed;
+
+	return FUNC(median_of_three)(array, v1, v0, v2, cmp);
+}
+
 VAR FUNC(median_of_fifteen)(VAR *array, size_t nmemb, CMPFUNC *cmp)
 {
 	size_t v0, v1, v2, v3, v4, div = nmemb / 16;
 
-	v0 = FUNC(median_of_three)(array, div * 2, div * 1, div * 3, cmp);
-	v1 = FUNC(median_of_three)(array, div * 5, div * 4, div * 6, cmp);
-	v2 = FUNC(median_of_three)(array, div * 8, div * 7, div * 9, cmp);
-	v3 = FUNC(median_of_three)(array, div * 11, div * 10, div * 12, cmp);
-	v4 = FUNC(median_of_three)(array, div * 14, div * 13, div * 15, cmp);
+	unsigned seed = nmemb;
+	v0 = FUNC(median_of_three_rand)(array, div *  0, div, &seed, 63, cmp);
+	v1 = FUNC(median_of_three_rand)(array, div *  3, div, &seed, 63, cmp);
+	v2 = FUNC(median_of_three_rand)(array, div *  7, div, &seed, 63, cmp);
+	v3 = FUNC(median_of_three_rand)(array, div * 10, div, &seed, 63, cmp);
+	v4 = FUNC(median_of_three_rand)(array, div * 13, div, &seed, 63, cmp);
 
 	return array[FUNC(median_of_five)(array, v2, v0, v1, v3, v4, cmp)];
 }
